@@ -9,7 +9,8 @@
  *   get_chart           — candles + series per symbol/timeframe
  *   get_index           — index composition, on-chain verified
  *   get_payout_basket   — the 19-name basket that pays $CLST holders
- *   get_distributions   — payout cycles, payroll, treasury (public record)
+ *   get_distributions   — payout cycles, treasury (public record; recipient
+ *                         lists are never public)
  *   quote_swap          — Uniswap v3 route + amountOut (amount in wei)
  *   trade_status        — router, quoter, gas, ETH price
  *   wallet_balances     — on-chain balances for any address (native ETH + holdings)
@@ -232,7 +233,17 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
       case "get_payout_basket":
         return json(await api("/api/index/payout-basket"));
       case "get_distributions":
-        return json(await api("/api/distributions"));
+        // Holder privacy (hard rule): recipient lists are never public.
+        // The backend keeps `payroll` internally for settlement; strip it
+        // from the public MCP output so it is never rendered.
+        {
+          const dist = await api("/api/distributions");
+          if (dist && typeof dist === "object" && "payroll" in dist) {
+            const { payroll, ...rest } = dist;
+            return json(rest);
+          }
+          return json(dist);
+        }
       case "quote_swap": {
         const qs = new URLSearchParams({ token: args.token, side: args.side ?? "buy", amount: args.amount });
         if (args.via) qs.set("via", args.via);

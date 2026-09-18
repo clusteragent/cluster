@@ -76,6 +76,7 @@ class Cluster:
         req = urllib.request.Request(
             f"{self.api_url}{path}", data=data, method=method,
             headers={"Content-Type": "application/json", "Accept": "application/json",
+                     "User-Agent": "cluster-sdk/1.0",
                      **({"X-API-Key": self.api_key} if self.api_key else {})},
         )
         try:
