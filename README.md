@@ -1,90 +1,98 @@
 # cluster
 
-**The runtime layer for agentic finance on Robinhood Chain.** Self-hostable index of
-AI financial agents — tokenized stocks + crypto, real Uniswap v3 swaps, persistent
-memory, and a 24-model LLM gateway in one MCP server.
+<p align="center">
+  <a href="https://github.com/clusteragent/cluster"><img src="https://img.shields.io/badge/chain-Robinhood%20%234663-7b5cff.svg?style=flat-square" alt="Chain"></a>
+  <a href="https://www.npmjs.com/package/@clusteragent/cluster-mcp"><img src="https://img.shields.io/npm/v/@clusteragent/cluster-mcp.svg?style=flat-square" alt="npm"></a>
+  <img src="https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square" alt="MIT">
+</p>
 
-```bash
+**The runtime layer for agentic finance on Robinhood Chain.** Self-hostable index
+of AI financial agents — 192 tokenized stocks + native crypto, real Uniswap v3
+swaps (non-custodial), persistent memory, and a 24-model LLM gateway.
+
+```
 npx @clusteragent/cluster-mcp
 ```
 
-## What it does
+```bash
+npx skills add clusteragent/cluster        # any skills-CLI agent
+pip install cluster-agent                  # Python SDK
+```
 
-| Capability | Tools |
-|---|---|
-| Live market data — 192 tokenized stocks/ETFs + native crypto (PONS, WETH, USDG, CLIPPY, KARMA, …) | `get_quotes` `get_movers` `get_news` `get_chart` |
-| Real swaps on Robinhood Chain (4663) — quoted here, **signed by your wallet** (non-custodial) | `quote_swap` `trade_status` `wallet_balances` |
-| Payout basket & distributions — the public record of every $CLST cycle | `get_payout_basket` `get_distributions` |
-| Persistent memory per wallet — deduped, recency-scored, survives sessions | `memory_retain` `memory_recall` |
-| LLM gateway — 24 models incl. GPT-6 Astra, Claude, GLM; `thinking` mode for deep reasoning | `chat` `get_models` `get_credits` |
-| API keys with per-request metering (requests / tokens / USD) | `create_key` `key_usage` |
+## Repo Layout
 
-## Install
+```
+├── SKILL.md                    main installer skill (any agent)
+├── index.mjs                   MCP server — 17 tools (@clusteragent/cluster-mcp)
+├── skills/
+│   ├── trading/                quotes, swap lifecycle, receipt proof (4663)
+│   ├── memory/                 built-in memory + Hindsight backend
+│   ├── finance/                portfolio, payouts, keys & metering, Maybe fork
+│   ├── crypto-intel/           wallet forensics, pool forensics, scout swarm
+│   ├── research/               Scout/Sifter/Quill/Census + OpenBB integration
+│   └── llm-gateway/            24 models, thinking mode, credit accounting
+├── python/                     cluster-agent PyPI SDK
+├── server/                     FastAPI backend (self-hostable, SQLite default)
+├── app/                        React/Vite frontend (landing, dashboard, docs)
+├── bot/                        keeper bot (DRY default; --confirm-real-money for live)
+└── docs/self-hosting.md        full deployment guide
+```
 
-### MCP (Claude, Codex, Hermes, OpenClaw, any MCP runtime)
+## Quick Start
+
+**Agent users** — see [SKILL.md](./SKILL.md). MCP config:
 
 ```json
-{
-  "mcpServers": {
-    "cluster": {
-      "command": "npx",
-      "args": ["-y", "@clusteragent/cluster-mcp"],
-      "env": {
-        "CLUSTER_API_URL": "https://your-cluster-host",
-        "CLUSTER_API_KEY": "clst_...",
-        "CLUSTER_WALLET": "0x..."
-      }
-    }
-  }
-}
+{ "mcpServers": { "cluster": {
+    "command": "npx", "args": ["-y", "@clusteragent/cluster-mcp"],
+    "env": { "CLUSTER_API_URL": "https://your-host", "CLUSTER_API_KEY": "clst_...", "CLUSTER_WALLET": "0x..." }
+}}}
 ```
 
-### Skill
+**Self-hosters** — see [docs/self-hosting.md](./docs/self-hosting.md). Backend +
+frontend + keeper bot, all local, SQLite default, zero external services except
+one LLM key for chat.
 
-Copy [SKILL.md](./SKILL.md) into your agent's skills directory — it teaches the
-agent the full flow: key creation, market data, swap building, receipt proof.
+**Python** — see [python/](./python):
 
-### Self-host the backend
-
-```bash
-git clone https://github.com/clusteragent/cluster
-cd cluster/server
-cp .env.example .env          # set LLM gateway key etc.
-pip install -r requirements.txt
-uvicorn app.main:app --port 8000
+```python
+from cluster import Cluster
+c = Cluster(api_url="https://your-host", api_key="clst_...")
+c.quotes(["NVDA", "PONS"]); c.payout_basket(); c.chat("hi", thinking=True)
 ```
 
-Then point `CLUSTER_API_URL` at it. Market data works out of the box; the LLM
-gateway needs your own provider key.
-
-## The mechanism
+## The Mechanism
 
 ```
 fees in ──▶ vault ──▶ keeper bot buys the 19-name basket ──▶ $CLST holders paid pro-rata
 ```
 
-Every agent action accrues fees. The keeper bot sweeps the payout basket at live
-market prices. Holding is the position — no staking, no claiming. Every cycle is
-public: `GET /api/distributions`.
+Holding is the position. Every cycle is public: `GET /api/distributions`.
 
-## The agents
+## Integrations
 
-Sixteen capabilities, each with its own skill pack:
+| Project | Role | Guide |
+|---|---|---|
+| [Hindsight](https://github.com/vectorize-io/hindsight) | learning memory backend (observations, mental models) | `skills/memory/` |
+| [OpenBB](https://github.com/OpenBB-finance/OpenBB) | institutional market data (fundamentals, macro) via MCP/Python | `skills/research/` |
+| [Maybe](https://github.com/maybe-finance/maybe) | self-hosted personal finance UI (AGPLv3 — rename your fork) | `skills/finance/` |
+| [OpenCatz](https://github.com/dizcorvus/opencatz-ai-robinhood-chain) | multi-agent scout swarm pattern on 4663 | `skills/crypto-intel/` |
+| [Uniswap AI](https://github.com/Uniswap/uniswap-ai) | skills architecture this repo follows | structure |
 
-**Trading** Relay · Pivot — **Research** Scout · Sifter · Quill — **Analysis** Argus · Prism · Census — **Finance** Ledger · Remit · Margin — **Memory** Memoria · Echo — **Crypto** Nexus · Vault · Oracle
+## The Agents
 
-## Honesty by construction
+**Trading** Relay · Pivot — **Research** Scout · Sifter · Quill — **Analysis** Argus ·
+Prism · Census — **Finance** Ledger · Remit · Margin — **Memory** Memoria · Echo —
+**Crypto** Nexus · Vault · Oracle
 
-- No fabricated numbers: pre-launch payout data returns honest zeros, never invented rows
-- Swaps never touch a private key on our side — the API quotes, your wallet signs
-- API keys are stored as SHA-256 hashes and shown exactly once
-- A quote is a prediction; the receipt is the proof — parse Transfer logs to see what actually arrived
+## Honesty by Construction
 
-## Chain info
-
-Robinhood Chain · chain id **4663** · Uniswap v3 ·
-Router `0xcaf681a6…5cb2` · QuoterV2 `0x33e885ed…a9e7`
+- Pre-launch payout data = honest zeros, never fabricated
+- Swaps: API quotes, your wallet signs — no private keys server-side
+- Keys: SHA-256 at rest, shown once
+- Quote = prediction; receipt = proof (parse the Transfer logs)
 
 ## License
 
-MIT
+MIT. Backend and skills are original work. The Maybe Finance fork note applies if
+you self-host that integration (AGPLv3, trademark rules in `skills/finance/`).

@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cluster-agent"
+version = "1.0.0"
+description = "Python SDK for cluster — the agentic finance runtime on Robinhood Chain (4663). Tokenized stocks + crypto, Uniswap v3 quotes, persistent memory, 24-model LLM gateway."
+readme = "../README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "clusteragent" }]
+keywords = ["robinhood-chain", "tokenized-stocks", "crypto", "uniswap-v3", "ai-agents", "memory", "llm"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Office/Business :: Financial :: Investment",
+]
+dependencies = [
+  "eth-abi>=5.0.0; platform_system != 'Windows'",
+]
+
+[project.optional-dependencies]
+web3 = ["web3>=6.0.0"]
+
+[project.urls]
+Homepage = "https://github.com/clusteragent/cluster"
+Repository = "https://github.com/clusteragent/cluster"
+
+[tool.setuptools]
+packages = ["cluster"]
