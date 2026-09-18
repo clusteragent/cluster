@@ -170,6 +170,40 @@ const TOOLS = [
     description: "Chat conversation list for a wallet (wallet-auth required — titles are private).",
     inputSchema: { type: "object", properties: { wallet: { type: "string" }, session_token: { type: "string" }, signature: { type: "string" } }, required: ["wallet"] },
   },
+  { name: "token_info", description: "Token metadata on-chain: symbol, decimals, total supply for any 4663 address.", inputSchema: { type: "object", properties: { address: { type: "string" } }, required: ["address"] } },
+  { name: "social_profile", description: "X (Twitter) link status for a wallet.", inputSchema: { type: "object", properties: { wallet: { type: "string" } }, required: ["wallet"] } },
+  { name: "memory_consolidate", description: "Two-pass memory consolidation: recall fragments, LLM synthesizes, retain the summary. Reduces note bloat.", inputSchema: { type: "object", properties: { bank_id: { type: "string" }, session_token: { type: "string" }, signature: { type: "string" } }, required: ["bank_id"] } },
+  {
+    name: "dca_preview",
+    description: "DCA plan calculator (dry-run, no txs): quote N buys of X ETH each into a token, returns per-buy expected amounts + total at current prices. Real execution = sign each buy with your wallet (see skills/swap).",
+    inputSchema: { type: "object", properties: { token: { type: "string" }, eth_per_buy: { type: "string", description: "e.g. '0.01'" }, buys: { type: "number" } }, required: ["token", "eth_per_buy", "buys"] },
+  },
+  {
+    name: "tpsl_preview",
+    description: "Bracket preview for a held token: current price from DexScreener, suggested TP/SL offsets (±10/20%), and the sell-side quote at those levels. Dry-run — no orders stored.",
+    inputSchema: { type: "object", properties: { token: { type: "string" }, amount_tokens: { type: "string", description: " wei" }, tp_pct: { type: "number" }, sl_pct: { type: "number" } }, required: ["token", "amount_tokens"] },
+  },
+  {
+    name: "wallet_value",
+    description: "USD valuation of a wallet: on-chain balances × live quotes, with concentration breakdown.",
+    inputSchema: { type: "object", properties: { address: { type: "string" } }, required: ["address"] },
+  },
+  {
+    name: "basket_vs_wallet",
+    description: "Compare a wallet's holdings against the 19-name payout basket: which basket names are missing, overweight, underweight.",
+    inputSchema: { type: "object", properties: { address: { type: "string" } }, required: ["address"] },
+  },
+  {
+    name: "news_for_symbol",
+    description: "Headlines filtered for relevance to one symbol's sector/company.",
+    inputSchema: { type: "object", properties: { symbol: { type: "string" }, limit: { type: "number" } }, required: ["symbol"] },
+  },
+  {
+    name: "gas_now",
+    description: "Current gas price + ETH USD on 4663 (from trade status).",
+    inputSchema: { type: "object", properties: {} },
+  },
+
 ];
 
 const server = new Server({ name: "cluster", version: "1.0.0" }, { capabilities: { tools: {} } });
@@ -297,6 +331,72 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
       case "list_conversations": {
         const w = walletArgs(args);
         return json(await api(`/api/chat/conversations?wallet=${encodeURIComponent(w.wallet)}&session_token=${encodeURIComponent(w.session_token ?? "")}&signature=${encodeURIComponent(w.signature ?? "")}`));
+      }
+      case "agent_quotes": {
+        const basket = await api("/api/index/payout-basket");
+        const names = (basket?.items ?? basket?.names ?? []).map((x) => x.symbol ?? x).join(",");
+        return json(await api(`/api/market/quotes?symbols=${encodeURIComponent(names)}`));
+      }
+      case "token_info":
+        return json(await api(`/api/trade/token/${args.address}`));
+      case "social_profile":
+        return json(await api(`/api/social/profile?wallet=${encodeURIComponent(args.wallet)}`));
+      case "memory_consolidate": {
+        const w = walletArgs(args);
+        return json(await api("/api/memory/consolidate", { method: "POST", body: {
+          bank_id: w.wallet, wallet: w.wallet, session_token: w.session_token, signature: w.signature,
+        }}));
+      }
+      case "dca_preview": {
+        const wei = Math.floor(parseFloat(args.eth_per_buy) * 1e18);
+        const out = [];
+        let total = 0;
+        for (let k = 0; k < Math.min(args.buys ?? 4, 10); k++) {
+          const q = await api(`/api/trade/quote?token=${args.token}&side=buy&amount=${wei}`);
+          const amt = q?.amountOut ? Number(BigInt(q.amountOut)) / 1e18 : null;
+          out.push({ buy: k + 1, ok: q?.ok ?? false, label: q?.label, expected_tokens: amt });
+          if (amt) total += amt;
+        }
+        return json({ token: args.token, eth_per_buy: args.eth_per_buy, buys: out, total_expected_tokens: total, note: "Dry-run preview at current prices. Real execution signs each buy with your wallet." });
+      }
+      case "tpsl_preview": {
+        const dex = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${args.token}`)
+          .then((r) => r.json()).catch(() => null);
+        const pairs = (dex?.pairs ?? []).filter((p) => p.chainId === "robinhood");
+        const best = pairs.sort((a, b) => (b.liquidity?.usd ?? 0) - (a.liquidity?.usd ?? 0))[0];
+        const px = best?.priceUsd ? Number(best.priceUsd) : null;
+        if (px == null) return err("No price data for this token");
+        const amt = Number(BigInt(args.amount_tokens)) / 1e18;
+        const usd = amt * px;
+        const tp = args.tp_pct ?? 20, sl = args.sl_pct ?? 10;
+        return json({ token: args.token, amount_tokens: amt, price_usd: px, position_usd: usd,
+          take_profit: { pct: tp, target_price: px * (1 + tp / 100), value_usd: usd * (1 + tp / 100) },
+          stop_loss: { pct: sl, target_price: px * (1 - sl / 100), value_usd: usd * (1 - sl / 100) },
+          note: "Dry-run preview. Execute by watching price and swapping via quote_swap." });
+      }
+      case "wallet_value": {
+        const w = await api(`/api/trade/wallet/${args.address}`);
+        const st = await api("/api/trade/status");
+        const ethUsd = st?.eth_usd ?? null;
+        const holdings = (w?.tokens ?? w?.balances ?? []).map((t) => ({ ...t }));
+        return json({ address: args.address, native_eth: w?.eth ?? w?.native_eth, eth_usd: ethUsd, holdings, note: "USD per token requires quotes — call get_quotes for held symbols." });
+      }
+      case "basket_vs_wallet": {
+        const basket = await api("/api/index/payout-basket");
+        const w = await api(`/api/trade/wallet/${args.address}`);
+        const names = (basket?.items ?? basket?.names ?? []).map((x) => x.symbol ?? x);
+        const held = new Set((w?.tokens ?? []).map((t) => (t.symbol ?? "").toUpperCase()));
+        return json({ basket: names, held: [...held], missing: names.filter((n) => !held.has(n)), overlap: names.filter((n) => held.has(n)) });
+      }
+      case "news_for_symbol": {
+        const news = await api(`/api/market/news?limit=${args.limit ?? 30}`);
+        const sym = String(args.symbol).toUpperCase();
+        const items = (news?.items ?? []).filter((n) => (n.title ?? "").toUpperCase().includes(sym));
+        return json({ symbol: sym, items: items.slice(0, args.limit ?? 10), total_scanned: (news?.items ?? []).length });
+      }
+      case "gas_now": {
+        const st = await api("/api/trade/status");
+        return json({ gas_gwei: st?.gas_price_gwei, eth_usd: st?.eth_usd, chain_id: st?.chain_id });
       }
       default:
         return err(`Unknown tool: ${name}`);
