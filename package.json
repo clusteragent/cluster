@@ -1,6 +1,6 @@
 {
   "name": "@clusteragent/cluster-mcp",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Cluster MCP + skills \u2014 self-hostable index of AI financial agents. Tokenized stocks + crypto on Robinhood Chain, persistent memory, 24-model LLM gateway.",
   "main": "index.mjs",
   "bin": {
