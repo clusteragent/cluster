@@ -23,9 +23,11 @@ pip install cluster-agent                  # Python SDK
 
 ```
 ├── SKILL.md                    main installer skill (any agent)
-├── index.mjs                   MCP server — 17 tools (@clusteragent/cluster-mcp)
+├── index.mjs                   MCP server — 25 tools (@clusteragent/cluster-mcp)
 ├── skills/
-│   ├── trading/                quotes, swap lifecycle, receipt proof (4663)
+│   ├── swap/                   dedicated swap execution: safety scan → quote →
+│   │                           calldata → sign → receipt proof, DCA/bracket patterns
+│   ├── trading/                quotes, market data, chart (4663)
 │   ├── memory/                 built-in memory + Hindsight backend
 │   ├── finance/                portfolio, payouts, keys & metering
 │   ├── crypto-intel/           wallet forensics, pool forensics, scout swarm
@@ -35,7 +37,7 @@ pip install cluster-agent                  # Python SDK
 └── docs/self-hosting.md        deployment guide
 ```
 
-**7 skills total** — 1 installer + 6 domain sub-skills.
+**8 skills total** — 1 installer + 7 domain sub-skills.
 
 > The cluster backend, frontend and keeper bot are **not** in this repo — the bot
 > signs real treasury transactions, so the operational stack stays private. This

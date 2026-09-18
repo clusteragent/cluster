@@ -138,6 +138,38 @@ const TOOLS = [
     inputSchema: { type: "object", properties: { wallet: { type: "string" }, name: { type: "string" }, session_token: { type: "string" }, signature: { type: "string" } }, required: ["wallet"] },
   },
   { name: "key_usage", description: "Metered usage for a wallet's keys: requests, tokens, USD.", inputSchema: { type: "object", properties: { wallet: { type: "string" }, session_token: { type: "string" }, signature: { type: "string" } }, required: ["wallet"] } },
+{
+    name: "token_safety",
+    description: "Safety scan for a Robinhood Chain token: liquidity depth, buy/sell ratio honeypot heuristic, holder count via explorer, launchpad-factory detection. Returns score, tier, flags.",
+    inputSchema: { type: "object", properties: { address: { type: "string" } }, required: ["address"] },
+  },
+  {
+    name: "compare_tokens",
+    description: "Side-by-side token comparison: price, 24h change, liquidity, volume for 2+ tokens (stocks or crypto).",
+    inputSchema: { type: "object", properties: { symbols: { type: "string", description: "Comma-separated, e.g. 'NVDA,PONS'" } }, required: ["symbols"] },
+  },
+  { name: "sector_heat", description: "Sector heat: average day change, advancers/decliners per sector across the universe.", inputSchema: { type: "object", properties: {} } },
+  { name: "agent_list", description: "The 16 cluster agent capabilities: Relay, Scout, Argus, Vault, Oracle, ... with categories and triggers.", inputSchema: { type: "object", properties: {} } },
+  {
+    name: "agent_run",
+    description: "Log an agent capability interaction for a wallet (audit trail; post-$CLST-launch these feed the payout mechanism).",
+    inputSchema: { type: "object", properties: { agent_id: { type: "string" }, wallet: { type: "string" }, label: { type: "string" }, session_token: { type: "string" }, signature: { type: "string" } }, required: ["agent_id"] },
+  },
+  {
+    name: "get_position",
+    description: "Wallet's index position: $CLST balance read on-chain (honest zeros pre-launch).",
+    inputSchema: { type: "object", properties: { wallet: { type: "string" } }, required: ["wallet"] },
+  },
+  {
+    name: "get_portfolio",
+    description: "Portfolio view + history for a wallet (wallet-auth required).",
+    inputSchema: { type: "object", properties: { wallet: { type: "string" }, session_token: { type: "string" }, signature: { type: "string" } }, required: ["wallet"] },
+  },
+  {
+    name: "list_conversations",
+    description: "Chat conversation list for a wallet (wallet-auth required — titles are private).",
+    inputSchema: { type: "object", properties: { wallet: { type: "string" }, session_token: { type: "string" }, signature: { type: "string" } }, required: ["wallet"] },
+  },
 ];
 
 const server = new Server({ name: "cluster", version: "1.0.0" }, { capabilities: { tools: {} } });
@@ -216,6 +248,55 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
       case "key_usage": {
         const w = walletArgs(args);
         return json(await api(`/api/keys/usage?wallet=${encodeURIComponent(w.wallet)}&session_token=${encodeURIComponent(w.session_token ?? "")}&signature=${encodeURIComponent(w.signature ?? "")}`));
+      }
+      case "token_safety": {
+        // Honeypot + liquidity heuristic (pattern: finchagentic checkTokenSafety)
+        const pairs = await api(`/api/market/quote/${args.address}`).catch(() => null);
+        const dex = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${args.address}`)
+          .then((r) => r.json()).catch(() => null);
+        const chainPairs = (dex?.pairs ?? []).filter((p) => p.chainId === "robinhood");
+        const totalLiq = chainPairs.reduce((s, p) => s + (parseFloat(p.liquidity?.usd ?? "0") || 0), 0);
+        const buys = chainPairs.reduce((s, p) => s + (p.txns?.h24?.buys ?? 0), 0);
+        const sells = chainPairs.reduce((s, p) => s + (p.txns?.h24?.sells ?? 0), 0);
+        const flags = [];
+        let score = 0;
+        if (totalLiq < 1000) { score += 30; flags.push("🔴 Very low liquidity (<$1k)"); }
+        else if (totalLiq < 25000) { score += 12; flags.push(`🟠 Thin liquidity ($${Math.round(totalLiq).toLocaleString()})`); }
+        else flags.push(`🟢 Liquidity: $${totalLiq >= 1e6 ? (totalLiq / 1e6).toFixed(1) + "M" : Math.round(totalLiq).toLocaleString()}`);
+        if (buys > 10 && sells === 0) { score += 40; flags.push("🔴 Honeypot heuristic: buys with ZERO sells in 24h"); }
+        else flags.push(`🟢 Two-way flow: ${buys} buys / ${sells} sells (24h)`);
+        const tier = score >= 40 ? "HIGH RISK" : score >= 15 ? "CAUTION" : "OK";
+        const best = chainPairs.sort((a, b) => (b.liquidity?.usd ?? 0) - (a.liquidity?.usd ?? 0))[0];
+        return json({ address: args.address, score, tier, flags,
+          liquidity_usd: totalLiq, buys_24h: buys, sells_24h: sells,
+          price_usd: best?.priceUsd ?? null,
+          dex_url: best ? `https://dexscreener.com/robinhood/${best.pairAddress}` : null,
+          note: "Heuristic only — not an audit. Always verify the contract source." });
+      }
+      case "compare_tokens": {
+        const syms = String(args.symbols).split(",").map((s) => s.trim()).filter(Boolean);
+        return json(await api(`/api/market/quotes?symbols=${encodeURIComponent(syms.join(","))}`));
+      }
+      case "sector_heat":
+        return json(await api("/api/market/sectors"));
+      case "agent_list":
+        return json(await api("/api/agents"));
+      case "agent_run": {
+        const w = walletArgs(args);
+        return json(await api("/api/runs", { method: "POST", body: {
+          agent_id: args.agent_id, wallet: w.wallet, label: args.label,
+          session_token: w.session_token, signature: w.signature,
+        }}));
+      }
+      case "get_position":
+        return json(await api(`/api/index/position?wallet=${encodeURIComponent(args.wallet)}`));
+      case "get_portfolio": {
+        const w = walletArgs(args);
+        return json(await api(`/api/portfolio?wallet=${encodeURIComponent(w.wallet)}&session_token=${encodeURIComponent(w.session_token ?? "")}&signature=${encodeURIComponent(w.signature ?? "")}`));
+      }
+      case "list_conversations": {
+        const w = walletArgs(args);
+        return json(await api(`/api/chat/conversations?wallet=${encodeURIComponent(w.wallet)}&session_token=${encodeURIComponent(w.session_token ?? "")}&signature=${encodeURIComponent(w.signature ?? "")}`));
       }
       default:
         return err(`Unknown tool: ${name}`);

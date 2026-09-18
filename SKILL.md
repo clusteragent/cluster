@@ -28,12 +28,13 @@ npx skills add clusteragent/cluster
 Or install individual sub-skills:
 
 ```bash
-npx skills add clusteragent/cluster --skill trading      # swaps + market data
-npx skills add clusteragent/cluster --skill memory       # persistent memory
-npx skills add clusteragent/cluster --skill finance      # portfolio + ledger
-npx skills add clusteragent/cluster --skill crypto-intel # on-chain intelligence
-npx skills add clusteragent/cluster --skill research     # market research agents
-npx skills add clusteragent/cluster --skill llm-gateway  # 24-model chat
+npx skills add clusteragent/cluster --skill swap          # dedicated swap execution
+npx skills add clusteragent/cluster --skill trading       # market data + trading context
+npx skills add clusteragent/cluster --skill memory        # persistent memory
+npx skills add clusteragent/cluster --skill finance       # portfolio + ledger
+npx skills add clusteragent/cluster --skill crypto-intel  # on-chain intelligence
+npx skills add clusteragent/cluster --skill research      # market research agents
+npx skills add clusteragent/cluster --skill llm-gateway   # 24-model chat
 ```
 
 ### Claude Code / plugin marketplace
@@ -106,7 +107,7 @@ curl -X POST "https://HOST/api/keys" \
 | Domain | MCP tools | Sub-skill |
 |---|---|---|
 | Market data (192 stocks + crypto) | `get_quotes` `get_movers` `get_news` `get_chart` | trading |
-| Swaps on 4663 (non-custodial) | `quote_swap` `trade_status` `wallet_balances` | trading |
+| Swaps on 4663 (non-custodial) | `quote_swap` `token_safety` `trade_status` `wallet_balances` | swap |
 | $CLST payouts | `get_payout_basket` `get_distributions` | finance |
 | Memory (built-in + Hindsight backend) | `memory_retain` `memory_recall` | memory |
 | LLM gateway (24 models, thinking mode) | `chat` `get_models` `get_credits` | llm-gateway |
