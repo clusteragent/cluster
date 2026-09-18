@@ -1,0 +1,40 @@
+{
+  "name": "@clusteragent/cluster-mcp",
+  "version": "1.0.0",
+  "description": "Cluster MCP \u2014 self-hostable index of AI financial agents. Tokenized stocks + crypto on Robinhood Chain, persistent memory, 24-model LLM gateway.",
+  "main": "index.mjs",
+  "bin": {
+    "cluster-mcp": "index.mjs"
+  },
+  "type": "module",
+  "files": [
+    "index.mjs",
+    "SKILL.md",
+    "README.md"
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "robinhood-chain",
+    "tokenized-stocks",
+    "crypto",
+    "uniswap-v3",
+    "ai-agents",
+    "persistent-memory",
+    "llm-gateway",
+    "defi"
+  ],
+  "author": "clusteragent",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clusteragent/cluster.git"
+  },
+  "homepage": "https://github.com/clusteragent/cluster#readme",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
