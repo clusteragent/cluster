@@ -67,6 +67,39 @@ function walletArgs(args) {
   return { wallet, session_token: args?.session_token || undefined, signature: args?.signature || undefined };
 }
 
+// Anonymous agent bank (no wallet needed). Memory must work out-of-the-box:
+// an agent that just installed the skill has no wallet yet. The server keeps
+// "agent:<id>" banks open (capped); wallet banks stay signature-gated.
+// The id is generated once and persisted locally, so notes survive restarts.
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { homedir } from "node:os";
+import { randomUUID } from "node:crypto";
+
+function agentBankId() {
+  const file = join(homedir(), ".cluster", "agent-bank");
+  try {
+    const id = readFileSync(file, "utf8").trim();
+    if (id.startsWith("agent:")) return id;
+  } catch {}
+  const id = `agent:${randomUUID()}`;
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, id + "\n", { mode: 0o600 });
+  return id;
+}
+
+function memoryArgs(args) {
+  // bank_id/wallet: wallet address if the agent has one; otherwise the
+  // anonymous agent bank. Wallet banks still need session_token/signature.
+  const bank = args?.bank_id || args?.wallet || WALLET || agentBankId();
+  return {
+    bank_id: bank,
+    wallet: bank,
+    session_token: args?.session_token || undefined,
+    signature: args?.signature || undefined,
+  };
+}
+
 const TOOLS = [
   {
     name: "get_quotes",
@@ -125,13 +158,13 @@ const TOOLS = [
   { name: "get_credits", description: "Inference credit balance (granted/used/remaining) for a wallet.", inputSchema: { type: "object", properties: { wallet: { type: "string" } }, required: ["wallet"] } },
   {
     name: "memory_retain",
-    description: "Store a durable memory note for a wallet/bank. Deduped — identical content is skipped. Persists across sessions.",
-    inputSchema: { type: "object", properties: { bank_id: { type: "string", description: "Wallet address or bank id" }, content: { type: "string", description: "Max 4000 chars" }, title: { type: "string" }, tags: { type: "array", items: { type: "string" } } }, required: ["bank_id", "content"] },
+    description: "Store a durable memory note. Works without a wallet (an anonymous agent bank is auto-created locally); pass a wallet/bank_id to use a private signature-gated wallet bank. Deduped — identical content is skipped. Persists across sessions.",
+    inputSchema: { type: "object", properties: { bank_id: { type: "string", description: "Optional. Wallet address or bank id; omit for the anonymous agent bank" }, content: { type: "string", description: "Max 4000 chars" }, title: { type: "string" }, tags: { type: "array", items: { type: "string" } } }, required: ["content"] },
   },
   {
     name: "memory_recall",
-    description: "Recall memory notes for a wallet/bank, scored by recency-decay match.",
-    inputSchema: { type: "object", properties: { bank_id: { type: "string" }, query: { type: "string" }, limit: { type: "number" } }, required: ["bank_id", "query"] },
+    description: "Recall memory notes, scored by semantic relevance with recency decay. Works without a wallet (anonymous agent bank); pass bank_id for a wallet bank.",
+    inputSchema: { type: "object", properties: { bank_id: { type: "string", description: "Optional. Wallet address or bank id; omit for the anonymous agent bank" }, query: { type: "string" }, limit: { type: "number" } }, required: ["query"] },
   },
   {
     name: "create_key",
@@ -274,20 +307,20 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
         );
       }
       case "memory_retain": {
-        const w = walletArgs(args);
+        const w = memoryArgs(args);
         return json(
           await api("/api/memory/retain", {
             method: "POST",
-            body: { bank_id: w.wallet, wallet: w.wallet, session_token: w.session_token, signature: w.signature, content: args.content, title: args.title, tags: args.tags },
+            body: { bank_id: w.bank_id, wallet: w.wallet, session_token: w.session_token, signature: w.signature, content: args.content, title: args.title, tags: args.tags },
           }),
         );
       }
       case "memory_recall": {
-        const w = walletArgs(args);
+        const w = memoryArgs(args);
         return json(
           await api("/api/memory/recall", {
             method: "POST",
-            body: { bank_id: w.wallet, wallet: w.wallet, session_token: w.session_token, signature: w.signature, query: args.query, limit: args.limit ?? 10 },
+            body: { bank_id: w.bank_id, wallet: w.wallet, session_token: w.session_token, signature: w.signature, query: args.query, limit: args.limit ?? 10 },
           }),
         );
       }
@@ -358,9 +391,10 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
       case "social_profile":
         return json(await api(`/api/social/profile?wallet=${encodeURIComponent(args.wallet)}`));
       case "memory_consolidate": {
-        const w = walletArgs(args);
+        const w = memoryArgs(args);
         return json(await api("/api/memory/consolidate", { method: "POST", body: {
-          bank_id: w.wallet, wallet: w.wallet, session_token: w.session_token, signature: w.signature,
+          bank_id: w.bank_id, wallet: w.wallet, session_token: w.session_token, signature: w.signature,
+          topic: args.topic, summary: args.summary, source_ids: args.source_ids ?? [],
         }}));
       }
       case "dca_preview": {
