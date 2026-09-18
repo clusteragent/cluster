@@ -5,47 +5,36 @@ LLM gateway needs one provider key.
 
 ## 1. Backend API (Python / FastAPI)
 
+The backend ships as a Docker image:
+
 ```bash
-git clone https://github.com/clusteragent/cluster
-cd cluster/server
-
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-
-# configure
-cp .env.example .env
-# minimum: set a gateway key for the LLM tools
-#   AGENTINDEX_LLM_API_KEY=sk-…        (or HERMES_CUSTOM_API_VIKEY_AI_API_KEY)
-#   AGENTINDEX_LLM_BASE_URL=…          (any [OI]-compatible endpoint)
-
-uvicorn app.main:app --port 8000
+docker run -d --name cluster-api -p 8000:8000 \
+  -e AGENTINDEX_LLM_API_KEY=sk-… \
+  -e AGENTINDEX_LLM_BASE_URL=https://your-gateway/v1 \
+  ghcr.io/clusteragent/cluster-api:latest
 # → health: http://localhost:8000/health
 ```
+
+(Currently distributed to verified self-hosters — the operational stack, including
+the keeper bot that signs treasury transactions, is kept out of this public repo
+on purpose. Open an issue to request access.)
 
 What runs without any external service: quotes, movers, sectors, news, index,
 payout basket, distributions feed (local keeper-bot snapshot), swap quotes +
 routes (raw RPC to Robinhood Chain), wallet balances (Multicall3), memory
 (SQLite), credits, keys. Only `/api/chat` needs the gateway key.
 
-## 2. Frontend (React / Vite)
+## 2. Frontend
 
-```bash
-cd ../app
-npm install
-npm run dev          # http://localhost:5173 — proxies /api to :8000
-```
-
-Routes: `/` landing · `/app` dashboard · `/docs` full documentation site.
+Ships in the same image behind the API (single container). Or run the React app
+separately and set `AGENTINDEX_CORS_ORIGINS` to its origin.
 
 ## 3. Keeper bot (payout mechanism)
 
-```bash
-cd ../bot
-npm install
-node cluster-bot.mjs                # DRY mode — reads vault, publishes feed, settles nothing
-# LIVE mode (real funds — needs TREASURY_PRIVATE_KEY, writes real txs):
-node cluster-bot.mjs --confirm-real-money
-```
+Runs inside the API container (supervised), DRY mode by default — reads the vault,
+prices the basket, publishes the feed, settles nothing. LIVE mode requires an
+explicit `--confirm-real-money` flag AND a `TREASURY_PRIVATE_KEY`, which only the
+operator holds. Distribution data is public via `/api/distributions` regardless.
 
 - DRY mode is the default and is safe: it exercises the full loop (vault read →
   basket pricing → feed publish) without moving funds

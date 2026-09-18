@@ -27,16 +27,19 @@ pip install cluster-agent                  # Python SDK
 ├── skills/
 │   ├── trading/                quotes, swap lifecycle, receipt proof (4663)
 │   ├── memory/                 built-in memory + Hindsight backend
-│   ├── finance/                portfolio, payouts, keys & metering, Maybe fork
+│   ├── finance/                portfolio, payouts, keys & metering
 │   ├── crypto-intel/           wallet forensics, pool forensics, scout swarm
-│   ├── research/               Scout/Sifter/Quill/Census + OpenBB integration
+│   ├── research/               agent roster + OpenBB integration
 │   └── llm-gateway/            24 models, thinking mode, credit accounting
 ├── python/                     cluster-agent PyPI SDK
-├── server/                     FastAPI backend (self-hostable, SQLite default)
-├── app/                        React/Vite frontend (landing, dashboard, docs)
-├── bot/                        keeper bot (DRY default; --confirm-real-money for live)
-└── docs/self-hosting.md        full deployment guide
+└── docs/self-hosting.md        deployment guide
 ```
+
+**7 skills total** — 1 installer + 6 domain sub-skills.
+
+> The cluster backend, frontend and keeper bot are **not** in this repo — the bot
+> signs real treasury transactions, so the operational stack stays private. This
+> repo is the skill/MCP platform: point it at any cluster deployment.
 
 ## Quick Start
 
@@ -49,9 +52,7 @@ pip install cluster-agent                  # Python SDK
 }}}
 ```
 
-**Self-hosters** — see [docs/self-hosting.md](./docs/self-hosting.md). Backend +
-frontend + keeper bot, all local, SQLite default, zero external services except
-one LLM key for chat.
+**Self-hosters** — see [docs/self-hosting.md](./docs/self-hosting.md). Docker images + a deployment guide; SQLite default, zero external services except one LLM key for chat.
 
 **Python** — see [python/](./python):
 
