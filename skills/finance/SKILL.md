@@ -60,11 +60,12 @@ curl "https://HOST/api/distributions"
 { "live": true, "mode": "dry",
   "totals": { "cycles": 0, "distributed_usd": 0.0, "recipients": 0 },
   "treasury": { "address": "0xcdfc…8827", "eth": 0.004169 },
-  "cycles": [], "payroll": [], "recent_buys": [] }
+  "cycles": [], "recent_buys": [] }
 ```
 
 - `mode: "dry"` = keeper bot running without settling; `live` = real cycles
-- `payroll` = holder leaderboard (ranked by payout, from cycle 1 onward)
+- Recipient lists are **never public** — the feed exposes cycles, per-cycle
+  aggregates and basket buys. No payroll, no holder ranking.
 - `recent_buys` = every keeper basket purchase with tx
 - `treasury.eth` = live vault balance, refreshed ~60s
 

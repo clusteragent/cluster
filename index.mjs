@@ -32,7 +32,7 @@ import {
   CallToolRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 
-const API = (process.env.CLUSTER_API_URL || "https://applicant-tremendous-respective-mono.trycloudflare.com").replace(/\/$/, "");
+const API = (process.env.CLUSTER_API_URL || "https://clusteragent.dev").replace(/\/$/, "");
 const KEY = process.env.CLUSTER_API_KEY || "";
 const WALLET = process.env.CLUSTER_WALLET || "";
 
@@ -85,7 +85,7 @@ const TOOLS = [
   },
   { name: "get_index", description: "Cluster index composition: 193 instruments, on-chain verified count, $CLST status.", inputSchema: { type: "object", properties: {} } },
   { name: "get_payout_basket", description: "The 19-name payout basket with weights — what $CLST holders get paid from.", inputSchema: { type: "object", properties: {} } },
-  { name: "get_distributions", description: "Distribution cycles, payroll and treasury balance — the public payout record.", inputSchema: { type: "object", properties: {} } },
+  { name: "get_distributions", description: "Distribution cycles, per-cycle aggregates, basket buys and treasury balance — the public payout record. Recipient lists are never public.", inputSchema: { type: "object", properties: {} } },
   {
     name: "quote_swap",
     description: "Uniswap v3 route + amountOut for a swap on Robinhood Chain (4663). amount is in WEI of the input token. Read-only — execution happens in the user's wallet.",
@@ -334,7 +334,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
       }
       case "agent_quotes": {
         const basket = await api("/api/index/payout-basket");
-        const names = (basket?.items ?? basket?.names ?? []).map((x) => x.symbol ?? x).join(",");
+        const names = (basket?.basket ?? []).map((x) => x.symbol ?? x).join(",");
         return json(await api(`/api/market/quotes?symbols=${encodeURIComponent(names)}`));
       }
       case "token_info":
@@ -384,7 +384,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
       case "basket_vs_wallet": {
         const basket = await api("/api/index/payout-basket");
         const w = await api(`/api/trade/wallet/${args.address}`);
-        const names = (basket?.items ?? basket?.names ?? []).map((x) => x.symbol ?? x);
+        const names = (basket?.basket ?? []).map((x) => x.symbol ?? x);
         const held = new Set((w?.tokens ?? []).map((t) => (t.symbol ?? "").toUpperCase()));
         return json({ basket: names, held: [...held], missing: names.filter((n) => !held.has(n)), overlap: names.filter((n) => held.has(n)) });
       }

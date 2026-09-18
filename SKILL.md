@@ -1,6 +1,6 @@
 ---
 name: cluster
-description: Cluster — the runtime layer for agentic finance on Robinhood Chain. Trade tokenized stocks and crypto on chain 4663 with real Uniswap v3 swaps (client-side signing, non-custodial), get live quotes for 192 tokenized instruments plus native crypto (PONS, WETH, USDG, CLIPPY, KARMA), read the $CLST payout basket and distribution cycles, use persistent per-wallet memory, and reach a 24-model LLM gateway ($5 free credit). Use when the user wants tokenized stock or crypto prices, swap execution, portfolio/basket data, agent runs (Relay, Scout, Argus, Vault, Oracle and 12 more), memory storage, or LLM access. Install sub-skills for trading, memory, finance, crypto-intel, research, and the LLM gateway.
+description: Cluster — the runtime layer for agentic finance on Robinhood Chain. Trade tokenized stocks and crypto on chain 4663 with real Uniswap v3 swaps (client-side signing, non-custodial), get live quotes for 192 tokenized instruments plus native crypto (PONS, WETH, USDG, CLIPPY, KARMA), read the $CLST payout basket and distribution cycles, use persistent per-wallet memory, and reach a 24-model LLM gateway ($5 free credit). Use when the user wants tokenized stock or crypto prices, swap execution, portfolio/basket data, agent runs (Relay, Scout, Argus, Vault, Oracle and 12 more), memory storage, or LLM access. Install sub-skills for swap, trading, portfolio, memory, finance, social, monitor, crypto-intel, research, and the LLM gateway.
 metadata:
   {
     "clawdbot":
@@ -15,7 +15,7 @@ metadata:
 # Cluster
 
 **fees in → basket out.** The runtime layer for agentic finance on Robinhood Chain
-(EVM L2, chain id 4663). One MCP server + six sub-skills. Self-hostable. Non-custodial.
+(EVM L2, chain id 4663). One MCP server + nine sub-skills. Self-hostable. Non-custodial.
 
 ## Install
 
@@ -30,8 +30,11 @@ Or install individual sub-skills:
 ```bash
 npx skills add clusteragent/cluster --skill swap          # dedicated swap execution
 npx skills add clusteragent/cluster --skill trading       # market data + trading context
+npx skills add clusteragent/cluster --skill portfolio     # wallet valuation, DCA/TP-SL previews
 npx skills add clusteragent/cluster --skill memory        # persistent memory
-npx skills add clusteragent/cluster --skill finance       # portfolio + ledger
+npx skills add clusteragent/cluster --skill finance       # payouts, ledger, metering
+npx skills add clusteragent/cluster --skill social        # X links + tips
+npx skills add clusteragent/cluster --skill monitor       # price/wallet/cycle/gas watch loops
 npx skills add clusteragent/cluster --skill crypto-intel  # on-chain intelligence
 npx skills add clusteragent/cluster --skill research      # market research agents
 npx skills add clusteragent/cluster --skill llm-gateway   # 24-model chat
@@ -106,10 +109,12 @@ curl -X POST "https://HOST/api/keys" \
 
 | Domain | MCP tools | Sub-skill |
 |---|---|---|
-| Market data (192 stocks + crypto) | `get_quotes` `get_movers` `get_news` `get_chart` | trading |
-| Swaps on 4663 (non-custodial) | `quote_swap` `token_safety` `trade_status` `wallet_balances` | swap |
+| Market data (192 stocks + crypto) | `get_quotes` `get_movers` `get_news` `get_chart` `compare_tokens` `sector_heat` `agent_quotes` `news_for_symbol` | trading |
+| Swaps on 4663 (non-custodial) | `quote_swap` `token_safety` `trade_status` `wallet_balances` `dca_preview` `tpsl_preview` `gas_now` | swap |
 | $CLST payouts | `get_payout_basket` `get_distributions` | finance |
-| Memory (built-in + Hindsight backend) | `memory_retain` `memory_recall` | memory |
+| Portfolio & positions | `wallet_value` `basket_vs_wallet` `get_position` `get_portfolio` | portfolio |
+| Social (X links + tips) | `social_profile` | social |
+| Memory (built-in + Hindsight backend) | `memory_retain` `memory_recall` `memory_consolidate` | memory |
 | LLM gateway (24 models, thinking mode) | `chat` `get_models` `get_credits` | llm-gateway |
 | API keys & metering | `create_key` `key_usage` | finance |
 | Agents (16 capabilities) | REST `/api/agents`, `/api/runs` | research |
