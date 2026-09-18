@@ -170,6 +170,11 @@ const TOOLS = [
     description: "Chat conversation list for a wallet (wallet-auth required — titles are private).",
     inputSchema: { type: "object", properties: { wallet: { type: "string" }, session_token: { type: "string" }, signature: { type: "string" } }, required: ["wallet"] },
   },
+  {
+    name: "agent_quotes",
+    description: "Real quotes for every agent that has a market analogue (mapped symbols). No-auth market data.",
+    inputSchema: { type: "object", properties: {} },
+  },
   { name: "token_info", description: "Token metadata on-chain: symbol, decimals, total supply for any 4663 address.", inputSchema: { type: "object", properties: { address: { type: "string" } }, required: ["address"] } },
   { name: "social_profile", description: "X (Twitter) link status for a wallet.", inputSchema: { type: "object", properties: { wallet: { type: "string" } }, required: ["wallet"] } },
   { name: "memory_consolidate", description: "Two-pass memory consolidation: recall fragments, LLM synthesizes, retain the summary. Reduces note bloat.", inputSchema: { type: "object", properties: { bank_id: { type: "string" }, session_token: { type: "string" }, signature: { type: "string" } }, required: ["bank_id"] } },
