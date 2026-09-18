@@ -1,7 +1,0 @@
-fastapi
-uvicorn[standard]
-sqlalchemy
-pydantic
-python-multipart
-openbb
-eth-account>=0.11
