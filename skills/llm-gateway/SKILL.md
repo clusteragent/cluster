@@ -16,7 +16,7 @@ Same shape as [OI] — swap the base URL and key.
 ## Models
 
 ```bash
-curl "https://HOST/api/chat/models"
+curl "https://clusteragent.dev/api/chat/models"
 ```
 
 ```
@@ -39,7 +39,7 @@ for genuinely hard problems.
 ## Chat
 
 ```bash
-curl -X POST "https://HOST/api/chat" \
+curl -X POST "https://clusteragent.dev/api/chat" \
   -H "Content-Type: application/json" \
   -d '{
     "wallet": "0xUSER",
@@ -71,7 +71,7 @@ Auth: either a fresh wallet signature / 60-minute session token, or an API key
 ## Credits
 
 ```bash
-curl "https://HOST/api/chat/credits?wallet=0xUSER"
+curl "https://clusteragent.dev/api/chat/credits?wallet=0xUSER"
 ```
 
 Reserve-then-true-up accounting: worst-case cost is committed before the gateway
@@ -86,7 +86,7 @@ pip install cluster-agent
 
 ```python
 from cluster import Cluster
-c = Cluster(api_url="https://HOST", api_key="clst_...")
+c = Cluster(api_url="https://clusteragent.dev", api_key="clst_...")
 
 r = c.chat(
     "Draft a one-page thesis on the PONS ecosystem",

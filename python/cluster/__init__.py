@@ -61,7 +61,7 @@ class Memory:
 class Cluster:
     """Client for a cluster backend (hosted or self-hosted)."""
 
-    def __init__(self, api_url: str = "http://localhost:8000", api_key: str | None = None,
+    def __init__(self, api_url: str = "https://clusteragent.dev", api_key: str | None = None,
                  wallet: str | None = None, session_token: str | None = None, timeout: float = 60.0):
         self.api_url = api_url.rstrip("/")
         self.api_key = api_key

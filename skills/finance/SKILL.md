@@ -18,8 +18,8 @@ data returns honest zeros by design.
 
 ```bash
 # Portfolio + history (wallet-scoped, auth required)
-curl "https://HOST/api/portfolio?wallet=0xUSER&session_token=…"
-curl "https://HOST/api/portfolio/history?wallet=0xUSER&session_token=…"
+curl "https://clusteragent.dev/api/portfolio?wallet=0xUSER&session_token=…"
+curl "https://clusteragent.dev/api/portfolio/history?wallet=0xUSER&session_token=…"
 ```
 
 - The real "position" is the wallet's **$CLST token balance**, read on-chain
@@ -28,7 +28,7 @@ curl "https://HOST/api/portfolio/history?wallet=0xUSER&session_token=…"
 - On-chain balances for any address, no auth needed:
 
 ```bash
-curl "https://HOST/api/trade/wallet/0xADDRESS"
+curl "https://clusteragent.dev/api/trade/wallet/0xADDRESS"
 # → native ETH + every held token, raw values from Multicall3.aggregate
 ```
 
@@ -38,7 +38,7 @@ curl "https://HOST/api/trade/wallet/0xADDRESS"
 accumulated fees at live market prices.
 
 ```bash
-curl "https://HOST/api/index/payout-basket"
+curl "https://clusteragent.dev/api/index/payout-basket"
 ```
 
 ```json
@@ -53,7 +53,7 @@ distinct when answering users.
 ## Distributions — the public record
 
 ```bash
-curl "https://HOST/api/distributions"
+curl "https://clusteragent.dev/api/distributions"
 ```
 
 ```json
@@ -73,14 +73,14 @@ curl "https://HOST/api/distributions"
 
 ```bash
 # create (raw key shown ONCE — SHA-256 stored)
-curl -X POST "https://HOST/api/keys" -H "Content-Type: application/json" \
+curl -X POST "https://clusteragent.dev/api/keys" -H "Content-Type: application/json" \
   -d '{"wallet":"0xUSER","session_token":"…","name":"prod"}'
 
 # list
-curl "https://HOST/api/keys?wallet=0xUSER&session_token=…"
+curl "https://clusteragent.dev/api/keys?wallet=0xUSER&session_token=…"
 
 # usage: requests, tokens, USD per key
-curl "https://HOST/api/keys/usage?wallet=0xUSER&session_token=…"
+curl "https://clusteragent.dev/api/keys/usage?wallet=0xUSER&session_token=…"
 ```
 
 Limits: 20 active keys per wallet. Keys are wallet-bound — a key can never touch
@@ -93,7 +93,7 @@ up front, then true-up from actual token usage — two concurrent requests canno
 double-spend the remainder. Rate limit: 30 chat requests/minute.
 
 ```bash
-curl "https://HOST/api/chat/credits?wallet=0xUSER"
+curl "https://clusteragent.dev/api/chat/credits?wallet=0xUSER"
 # → { "granted_usd": 5.0, "used_usd": 0.0, "remaining_usd": 5.0 }
 ```
 

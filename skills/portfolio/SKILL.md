@@ -17,7 +17,7 @@ return honest nulls, never invented rows.
 ## Wallet Valuation
 
 ```bash
-curl "https://HOST/api/trade/wallet/0xADDRESS"
+curl "https://clusteragent.dev/api/trade/wallet/0xADDRESS"
 # → native ETH + every held token (Multicall3.aggregate, raw values)
 ```
 
@@ -27,7 +27,7 @@ MCP shortcut: `wallet_value` (balances + ETH/USD in one call), `wallet_balances`
 ## Index Position
 
 ```bash
-curl "https://HOST/api/index/position?clst_balance=100&clst_total_supply=1000000000"
+curl "https://clusteragent.dev/api/index/position?clst_balance=100&clst_total_supply=1000000000"
 # → per-instrument implied qty + USD from REAL inputs you supply;
 # omit the params (or pre-launch) → implied_* = null, only weights populated
 ```

@@ -15,7 +15,7 @@ Wallets are the identity. X handles are optional public labels on top.
 ## Public Profile (no auth)
 
 ```bash
-curl "https://HOST/api/social/profile?wallet=0xADDRESS"
+curl "https://clusteragent.dev/api/social/profile?wallet=0xADDRESS"
 # → { wallet, x_handle, x_linked, tips_sent, tips_received, tip_total_usd }
 ```
 
@@ -24,7 +24,7 @@ MCP: `social_profile { wallet }`.
 ## Link / Unlink X (wallet-auth required)
 
 ```bash
-curl -X POST "https://HOST/api/social/link-x" \
+curl -X POST "https://clusteragent.dev/api/social/link-x" \
   -H "Content-Type: application/json" \
   -d '{"wallet":"0xUSER","session_token":"…","handle":"@name"}'
 # empty handle = unlink
@@ -36,7 +36,7 @@ re-linking replaces.
 ## Tips (wallet-auth required)
 
 ```bash
-curl -X POST "https://HOST/api/social/tip" \
+curl -X POST "https://clusteragent.dev/api/social/tip" \
   -H "Content-Type: application/json" \
   -d '{"wallet":"0xFROM","session_token":"…","to":"0xTO","amount":"1.5","note":"…"}'
 ```

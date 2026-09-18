@@ -78,7 +78,7 @@ pons launchpad UI). Do not retry forever.
 
 ```bash
 # buy: 0.01 ETH → token (amount in wei)
-curl "https://HOST/api/trade/quote?token=0xTOKEN&side=buy&amount=10000000000000000"
+curl "https://clusteragent.dev/api/trade/quote?token=0xTOKEN&side=buy&amount=10000000000000000"
 # → { "ok": true, "path": "0x…", "label": "WETH/500/USDG/3000", "amountOut": "…" }
 ```
 

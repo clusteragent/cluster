@@ -52,7 +52,7 @@ RHAGENT     0x894fac757250f8e02180e1856957274d84ac4ba3   (launchpad factory — 
 ## Step 1 — Quote
 
 ```bash
-curl "https://HOST/api/trade/quote?token=0xNVDA&side=buy&amount=10000000000000000&via=WETH"
+curl "https://clusteragent.dev/api/trade/quote?token=0xNVDA&side=buy&amount=10000000000000000&via=WETH"
 ```
 
 ```json
@@ -116,11 +116,11 @@ the route moved — that is the user's real fill.
 ## Market Data
 
 ```bash
-curl "https://HOST/api/market/quotes?symbols=NVDA,SPY,PONS"   # batch + daily closes
-curl "https://HOST/api/market/movers?limit=10"                 # gainers/losers/sectors
-curl "https://HOST/api/market/chart/NVDA?tf=1mo"               # series + candles
-curl "https://HOST/api/trade/status"                           # gas, ETH price, router
-curl "https://HOST/api/trade/wallet/0xADDRESS"                 # on-chain balances
+curl "https://clusteragent.dev/api/market/quotes?symbols=NVDA,SPY,PONS"   # batch + daily closes
+curl "https://clusteragent.dev/api/market/movers?limit=10"                 # gainers/losers/sectors
+curl "https://clusteragent.dev/api/market/chart/NVDA?tf=1mo"               # series + candles
+curl "https://clusteragent.dev/api/trade/status"                           # gas, ETH price, router
+curl "https://clusteragent.dev/api/trade/wallet/0xADDRESS"                 # on-chain balances
 ```
 
 ## Safety Rules

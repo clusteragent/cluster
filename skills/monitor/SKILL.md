@@ -19,7 +19,7 @@ Poll `get_quotes` (stocks) or DexScreener (crypto), compare against thresholds.
 
 ```bash
 # stocks: batch quotes, check each symbol server-side fresh
-curl "https://HOST/api/market/quotes?symbols=NVDA,PONS"
+curl "https://clusteragent.dev/api/market/quotes?symbols=NVDA,PONS"
 # crypto single token:
 curl "https://api.dexscreener.com/latest/dex/tokens/0xTOKEN"
 ```
@@ -30,7 +30,7 @@ Alert rule: `price >= above` OR `price <= below` → notify once, then set
 ## Wallet Watch
 
 ```bash
-curl "https://HOST/api/trade/wallet/0xADDRESS"
+curl "https://clusteragent.dev/api/trade/wallet/0xADDRESS"
 ```
 
 Store last-seen balances per token; on change beyond a dust threshold, report
@@ -40,7 +40,7 @@ small ETH-only drifts aren't misread as transfers.
 ## Cycle Watch (keeper bot feed)
 
 ```bash
-curl "https://HOST/api/distributions"
+curl "https://clusteragent.dev/api/distributions"
 ```
 
 Track `totals.cycles` + `updated_at`; a new cycle = report distributed USD,

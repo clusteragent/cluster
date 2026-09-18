@@ -48,7 +48,7 @@ Rules: verdict first, every fact carries a source and date, counter-evidence is
 mandatory, no unsourced claims. After delivery, persist the conclusion:
 
 ```bash
-curl -X POST "https://HOST/api/memory/retain" \
+curl -X POST "https://clusteragent.dev/api/memory/retain" \
   -H "Content-Type: application/json" \
   -d '{"bank_id":"0xUSER","content":"Scout 2026-09: NVDA momentum positive — supply constraints ease Q4, consensus at $240. Confidence: medium.","tags":["research","NVDA"],"session_token":"…"}'
 ```
@@ -56,10 +56,10 @@ curl -X POST "https://HOST/api/memory/retain" \
 ## Market Data Workflows (cluster API)
 
 ```bash
-curl "https://HOST/api/market/quotes?symbols=NVDA,AMD,MU"   # price + 1mo closes
-curl "https://HOST/api/market/news?limit=12"                 # headlines
-curl "https://HOST/api/market/sectors"                       # sector heat
-curl "https://HOST/api/market/movers?limit=10"               # flow of the day
+curl "https://clusteragent.dev/api/market/quotes?symbols=NVDA,AMD,MU"   # price + 1mo closes
+curl "https://clusteragent.dev/api/market/news?limit=12"                 # headlines
+curl "https://clusteragent.dev/api/market/sectors"                       # sector heat
+curl "https://clusteragent.dev/api/market/movers?limit=10"               # flow of the day
 ```
 
 Use these for market *state*; use OpenBB below for fundamentals, options and

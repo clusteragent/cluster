@@ -56,7 +56,7 @@ npx skills add clusteragent/cluster --skill llm-gateway   # 24-model chat
       "command": "npx",
       "args": ["-y", "@clusteragent/cluster-mcp"],
       "env": {
-        "CLUSTER_API_URL": "https://your-cluster-host",
+        "CLUSTER_API_URL": "https://clusteragent.dev",
         "CLUSTER_API_KEY": "clst_...",
         "CLUSTER_WALLET": "0x..."
       }
@@ -73,7 +73,7 @@ pip install cluster-agent
 
 ```python
 from cluster import Cluster
-c = Cluster(api_url="https://your-cluster-host", api_key="clst_...")
+c = Cluster(api_url="https://clusteragent.dev", api_key="clst_...")
 
 c.quotes(["NVDA", "PONS"])           # live quotes + daily closes
 c.payout_basket()                    # the 19-name basket, weights sum to 100
@@ -94,13 +94,13 @@ copy `clst_...` (shown exactly once, stored as SHA-256).
 
 ```bash
 # 1. challenge
-curl "https://HOST/api/auth/challenge?wallet=0xYOUR_ADDRESS"
+curl "https://clusteragent.dev/api/auth/challenge?wallet=0xYOUR_ADDRESS"
 # 2. sign the message (personal_sign), exchange for a 60-minute session
-curl -X POST "https://HOST/api/auth/session" \
+curl -X POST "https://clusteragent.dev/api/auth/session" \
   -H "Content-Type: application/json" \
   -d '{"wallet":"0xYOUR_ADDRESS","signature":"0xSIGNED"}'
 # 3. mint a key
-curl -X POST "https://HOST/api/keys" \
+curl -X POST "https://clusteragent.dev/api/keys" \
   -H "Content-Type: application/json" \
   -d '{"wallet":"0xYOUR_ADDRESS","session_token":"...","name":"my-agent"}'
 ```

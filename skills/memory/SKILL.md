@@ -23,7 +23,7 @@ Two tiers:
 ### Retain
 
 ```bash
-curl -X POST "https://HOST/api/memory/retain" \
+curl -X POST "https://clusteragent.dev/api/memory/retain" \
   -H "Content-Type: application/json" \
   -d '{
     "bank_id": "0xUSER_WALLET",
@@ -42,7 +42,7 @@ curl -X POST "https://HOST/api/memory/retain" \
 ### Recall
 
 ```bash
-curl -X POST "https://HOST/api/memory/recall" \
+curl -X POST "https://clusteragent.dev/api/memory/recall" \
   -H "Content-Type: application/json" \
   -d '{"bank_id":"0xUSER_WALLET","query":"what does the user hold?","limit":10}'
 ```

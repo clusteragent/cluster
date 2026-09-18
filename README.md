@@ -23,7 +23,7 @@ pip install cluster-agent                  # Python SDK
 
 ```
 ├── SKILL.md                    main installer skill (any agent)
-├── index.mjs                   MCP server — 25 tools (@clusteragent/cluster-mcp)
+├── index.mjs                   MCP server — 35 tools (@clusteragent/cluster-mcp)
 ├── skills/
 │   ├── swap/                   dedicated swap execution: safety scan → quote →
 │   │                           calldata → sign → receipt proof, DCA/bracket patterns
@@ -32,12 +32,15 @@ pip install cluster-agent                  # Python SDK
 │   ├── finance/                portfolio, payouts, keys & metering
 │   ├── crypto-intel/           wallet forensics, pool forensics, scout swarm
 │   ├── research/               agent roster + OpenBB integration
-│   └── llm-gateway/            24 models, thinking mode, credit accounting
+│   ├── llm-gateway/            24 models, thinking mode, credit accounting
+│   ├── portfolio/              wallet valuation, DCA/TP-SL previews
+│   ├── social/                 X links + tip intents
+│   └── monitor/                price/wallet/cycle/gas watch loops
 ├── python/                     cluster-agent PyPI SDK
 └── docs/self-hosting.md        deployment guide
 ```
 
-**8 skills total** — 1 installer + 7 domain sub-skills.
+**11 skills total** — 1 installer + 10 domain sub-skills.
 
 > The cluster backend, frontend and keeper bot are **not** in this repo — the bot
 > signs real treasury transactions, so the operational stack stays private. This
@@ -50,7 +53,7 @@ pip install cluster-agent                  # Python SDK
 ```json
 { "mcpServers": { "cluster": {
     "command": "npx", "args": ["-y", "@clusteragent/cluster-mcp"],
-    "env": { "CLUSTER_API_URL": "https://your-host", "CLUSTER_API_KEY": "clst_...", "CLUSTER_WALLET": "0x..." }
+    "env": { "CLUSTER_API_URL": "https://clusteragent.dev", "CLUSTER_API_KEY": "clst_...", "CLUSTER_WALLET": "0x..." }
 }}}
 ```
 

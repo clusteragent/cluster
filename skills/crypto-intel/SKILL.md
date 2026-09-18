@@ -17,7 +17,7 @@ explorer: https://robinhoodchain.blockscout.com
 
 ```bash
 # Full balance sheet — native ETH + every held token, one call
-curl "https://HOST/api/trade/wallet/0xADDRESS"
+curl "https://clusteragent.dev/api/trade/wallet/0xADDRESS"
 ```
 
 - Values are raw on-chain reads via **Multicall3** (`0xcA11…CA11`, live on 4663) —
