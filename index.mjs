@@ -186,8 +186,13 @@ const TOOLS = [
   { name: "agent_list", description: "The 16 cluster agent capabilities: Relay, Scout, Argus, Vault, Oracle, ... with categories and triggers.", inputSchema: { type: "object", properties: {} } },
   {
     name: "agent_run",
-    description: "Log an agent capability interaction for a wallet (audit trail; post-$CLST-launch these feed the payout mechanism).",
-    inputSchema: { type: "object", properties: { agent_id: { type: "string" }, wallet: { type: "string" }, label: { type: "string" }, session_token: { type: "string" }, signature: { type: "string" } }, required: ["agent_id"] },
+    description: "Queue a public agent capability run; returns run id/status, then poll get_run_status for cited result. No treasury or signing side effect.",
+    inputSchema: { type: "object", properties: { agent_id: { type: "string" }, wallet: { type: "string" }, label: { type: "string" }, idempotency_key: { type: "string" }, session_token: { type: "string" }, signature: { type: "string" } }, required: ["agent_id"] },
+  },
+  {
+    name: "get_run_status",
+    description: "Read a queued agent run's status, cited result, and retryable failure state.",
+    inputSchema: { type: "object", properties: { id: { type: "number" }, wallet: { type: "string" }, session_token: { type: "string" }, signature: { type: "string" } }, required: ["id", "wallet"] },
   },
   {
     name: "get_position",
@@ -367,9 +372,13 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
       case "agent_run": {
         const w = walletArgs(args);
         return json(await api("/api/runs", { method: "POST", body: {
-          agent_id: args.agent_id, wallet: w.wallet, label: args.label,
+          agent_id: args.agent_id, wallet: w.wallet, label: args.label, idempotency_key: args.idempotency_key,
           session_token: w.session_token, signature: w.signature,
         }}));
+      }
+      case "get_run_status": {
+        const w = walletArgs(args);
+        return json(await api(`/api/runs/${args.id}?wallet=${encodeURIComponent(w.wallet)}&session_token=${encodeURIComponent(w.session_token ?? "")}&signature=${encodeURIComponent(w.signature ?? "")}`));
       }
       case "get_position":
         return json(await api(`/api/index/position?wallet=${encodeURIComponent(args.wallet)}`));
