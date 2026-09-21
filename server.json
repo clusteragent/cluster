@@ -1,0 +1,57 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "dev.clusteragent/cluster-mcp",
+  "description": "Self-hostable index of AI financial agents — tokenized stocks + crypto, memory, LLM gateway.",
+  "repository": {
+    "url": "https://github.com/clusteragent/cluster",
+    "source": "github"
+  },
+  "version": "1.0.12",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@clusteragent/cluster-mcp",
+      "version": "1.0.12",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "description": "Cluster backend base URL (default: https://clusteragent.dev)",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false,
+          "name": "CLUSTER_API_URL"
+        },
+        {
+          "description": "Cluster API key (clst_...) minted via wallet signature — required only for wallet-scoped tools",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true,
+          "name": "CLUSTER_API_KEY"
+        },
+        {
+          "description": "Default wallet address for wallet-scoped tools",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false,
+          "name": "CLUSTER_WALLET"
+        }
+      ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.clusteragent.dev/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Bearer clst_... API key minted via wallet signature (see /api/keys)",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
